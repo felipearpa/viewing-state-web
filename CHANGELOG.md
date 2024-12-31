@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2024-12-28
+## [1.0.0] - 2024-12-31
 ### ⚠️ Breaking Changes
 - **Updated** the `LoadableViewState.fold` method:
     - **Renamed** the handler's property in the object parameter from `onError` to `onFailure`. This applies when the `fold` method is called using an object with handler properties.

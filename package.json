@@ -1,6 +1,6 @@
 {
   "name": "@felipearpa/viewing-state",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A TypeScript library to handle view states",
   "repository": {
     "type": "git",
@@ -29,7 +29,11 @@
   },
   "keywords": [
     "felipearpa",
-    "result"
+    "result",
+    "view",
+    "state",
+    "loadable",
+    "editable"
   ],
   "author": "Felipe Arcila Parra",
   "license": "ISC",

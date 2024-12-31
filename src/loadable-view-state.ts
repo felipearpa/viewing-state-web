@@ -24,6 +24,14 @@ class FailureType {
 
 type LoadableViewStateType<Value> = InitialType | LoadingType | SuccessType<Value> | FailureType;
 
+/**
+ * Represents the state of a loadable view, allowing for handling multiple states such as initial, loading, success, or failure.
+ *
+ * This class provides utility methods to construct different states, query the current state, and perform corresponding operations
+ * based on the specific state type.
+ *
+ * @template Value The type of the data this state encapsulates in a success case.
+ */
 export class LoadableViewState<Value> {
     constructor(private readonly loadableViewState: LoadableViewStateType<Value>) {}
 
@@ -220,19 +228,65 @@ export class LoadableViewState<Value> {
      *
      * @template Value
      * @template NewValue
+     * @param {Object} handlers - An object containing handler functions for each possible state.
+     * @param {(Value) => NewValue} handlers.onSuccess - A function to transform the encapsulated value if the state is success.
+     * @param {(Error) => NewValue} handlers.onFailure - A function to transform the encapsulated value if the state is error.
+     * @param {() => NewValue} handlers.onInitial - A function to transform the instance if the state is initial.
+     * @param {() => NewValue} handlers.onLoading - A function to transform the instance if the state is loading.
+     * @return {NewValue} - The result of onSuccess for the encapsulated value if this instance represents success or the result of onFailure function for the
+     * encapsulated error if it is failure or the result of onInitial function if this instance represents initial or the result of onLoading if this instance
+     * represents loading.
+     */
+    fold<NewValue>(handlers: {
+        onSuccess: (value: Value) => NewValue;
+        onFailure: (error: Error) => NewValue;
+        onInitial: () => NewValue;
+        onLoading: () => NewValue;
+    }): NewValue;
+
+    /**
+     * Transforms the encapsulated value if the state is a success and returns the transformation's result, or the result of the `onElse` function for all
+     * other states.
+     *
+     * @template Value
+     * @template NewValue
      * @param {(Value) => NewValue} onSuccess - A function to transform the encapsulated value if the state is success.
-     * @param {(Error) => NewValue} onError - A function to transform the encapsulated value if the state is error.
+     * @param {(Error) => NewValue} onFailure - A function to transform the encapsulated value if the state is error.
      * @param {() => NewValue} onInitial - A function to transform the instance if the state is initial.
      * @param {() => NewValue} onLoading - A function to transform the instance if the state is loading.
      * @return {NewValue} The result of onSuccess for the encapsulated value if this instance represents success or the result of onFailure function for the
      * encapsulated error if it is failure or the result of onInitial function if this instance represents initial or the result of onLoading if this instance
      * represents loading.
      */
-    fold<NewValue>(onSuccess: (value: Value) => NewValue, onError: (error: Error) => NewValue, onInitial: () => NewValue, onLoading: () => NewValue): NewValue {
-        if (this.isSuccess) return onSuccess((this.loadableViewState as SuccessType<Value>).value);
-        if (this.isInitial) return onInitial();
-        if (this.isLoading) return onLoading();
-        return onError((this.loadableViewState as FailureType).error);
+    fold<NewValue>(
+        onSuccess: (value: Value) => NewValue,
+        onFailure: (error: Error) => NewValue,
+        onInitial: () => NewValue,
+        onLoading: () => NewValue,
+    ): NewValue;
+
+    fold<NewValue>(
+        handlers:
+            | {
+                  onSuccess: (value: Value) => NewValue;
+                  onFailure: (error: Error) => NewValue;
+                  onInitial: () => NewValue;
+                  onLoading: () => NewValue;
+              }
+            | ((value: Value) => NewValue),
+        onFailure?: (error: Error) => NewValue,
+        onInitial?: () => NewValue,
+        onLoading?: () => NewValue,
+    ): NewValue {
+        if (typeof handlers === 'object') {
+            const { onSuccess, onFailure, onInitial, onLoading } = handlers;
+            return this.fold(onSuccess, onFailure, onInitial, onLoading);
+        }
+
+        if (this.isSuccess) return (handlers as (value: Value) => NewValue)((this.loadableViewState as { value: Value }).value);
+        if (this.isInitial) return (onInitial as () => NewValue)();
+        if (this.isLoading) return (onLoading as () => NewValue)();
+        return (onFailure as (error: Error) => NewValue)((this.loadableViewState as { error: Error }).error);
     }
 
     /**
